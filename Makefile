@@ -7,11 +7,13 @@ SRC      = main.c util.c parse.c cfg.c mem.c ssa.c alias.c load.c copy.c \
            fold.c live.c spill.c rega.c gas.c
 AMD64SRC = amd64/targ.c amd64/sysv.c amd64/isel.c amd64/emit.c
 ARM64SRC = arm64/targ.c arm64/abi.c arm64/isel.c arm64/emit.c
-SRCALL   = $(SRC) $(AMD64SRC) $(ARM64SRC)
+PPC64LESRC = ppc64le/targ.c ppc64le/abi.c ppc64le/isel.c ppc64le/emit.c
+SRCALL   = $(SRC) $(AMD64SRC) $(ARM64SRC) $(PPC64LESRC)
 
 AMD64OBJ = $(AMD64SRC:%.c=$(OBJDIR)/%.o)
 ARM64OBJ = $(ARM64SRC:%.c=$(OBJDIR)/%.o)
-OBJ      = $(SRC:%.c=$(OBJDIR)/%.o) $(AMD64OBJ) $(ARM64OBJ)
+PPC64LEOBJ = $(PPC64LESRC:%.c=$(OBJDIR)/%.o)
+OBJ      = $(SRC:%.c=$(OBJDIR)/%.o) $(AMD64OBJ) $(ARM64OBJ) $(PPC64LEOBJ)
 
 CFLAGS += -Wall -Wextra -std=c99 -g -pedantic
 
@@ -27,6 +29,7 @@ $(OBJDIR)/timestamp:
 	@mkdir -p $(OBJDIR)
 	@mkdir -p $(OBJDIR)/amd64
 	@mkdir -p $(OBJDIR)/arm64
+	@mkdir -p $(OBJDIR)/ppc64le
 	@touch $@
 
 $(OBJ): all.h ops.h
@@ -46,6 +49,9 @@ config.h:
 		*aarch64*)                             \
 			echo "#define Deftgt T_arm64"; \
 			;;                             \
+		*ppc64le*)
+			echo "#define Deftgt T_ppc64le"; \
+			;;
 		*)                                     \
 			echo "#define Deftgt T_amd64_sysv";\
 			;;                             \
