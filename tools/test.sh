@@ -15,10 +15,17 @@ out=$tmp.out
 init() {
 	case "$TARGET" in
 	arm64)
+		if which qemu-aarch64 2>/dev/null >/dev/null
+		then
+			qemucmd=qemu-aarch64
+		else
+			qemucmd=qemu-system-aarch64
+		fi
 		for p in aarch64-linux-musl aarch64-linux-gnu
 		do
 			cc="$p-gcc -no-pie -static"
-			qemu="qemu-aarch64"
+			#qemu="qemu-aarch64"
+			qemu="$qemucmd -L /usr/$p"
 			if
 				$cc -v >/dev/null 2>&1 &&
 				$qemu -version >/dev/null 2>&1
