@@ -116,14 +116,14 @@ rname(int r, int k)
 		switch (k) {
 		default: die("invalid class");
 		case Kw: sprintf(buf, "w%d", r-R0); break;
-		case Kx:
+		case K_:
 		case Kl: sprintf(buf, "x%d", r-R0); break;
 		}
 	else if (V0 <= r && r <= V30)
 		switch (k) {
 		default: die("invalid class");
 		case Ks: sprintf(buf, "s%d", r-V0); break;
-		case Kx:
+		case K_:
 		case Kd: sprintf(buf, "d%d", r-V0); break;
 		}
 	else
@@ -441,7 +441,7 @@ arm64_emitfn(Fn *fn, FILE *out)
 		if (e->fn->reg & BIT(*r))
 			fprintf(e->f,
 				"\tstr\t%s, [sp, %"PRIu64"]\n",
-				rname(*r, Kx), o -= 8
+				rname(*r, K_), o -= 8
 			);
 
 	for (lbl=0, b=e->fn->start; b; b=b->link) {
@@ -456,7 +456,7 @@ arm64_emitfn(Fn *fn, FILE *out)
 				if (e->fn->reg & BIT(*r))
 					fprintf(e->f,
 						"\tldr\t%s, [sp, %"PRIu64"]\n",
-						rname(*r, Kx), o -= 8
+						rname(*r, K_), o -= 8
 					);
 			o = e->frame + 16;
 			if (e->fn->vararg)

@@ -36,7 +36,7 @@ classify(AClass *a, Typ *t, uint s)
 				break;
 			case Fs:
 			case Fd:
-				if (*cls == Kx)
+				if (*cls == K_)
 					*cls = Kd;
 				s += f->len;
 				break;
@@ -83,8 +83,8 @@ typclass(AClass *a, Typ *t)
 		return;
 	}
 
-	a->cls[0] = Kx;
-	a->cls[1] = Kx;
+	a->cls[0] = K_;
+	a->cls[1] = K_;
 	a->inmem = 0;
 	classify(a, t, 0);
 }

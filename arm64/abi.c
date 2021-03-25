@@ -104,7 +104,7 @@ typclass(Class *c, Typ *t, int *gp, int *fp)
 	}
 
 	c->size = sz;
-	c->hfa.base = Kx;
+	c->hfa.base = K_;
 	c->ishfa = isfloatv(t, &c->hfa.base);
 	c->hfa.size = t->size/(KWIDE(c->hfa.base) ? 8 : 4);
 

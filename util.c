@@ -298,7 +298,7 @@ clsmerge(short *pk, short k)
 	short k1;
 
 	k1 = *pk;
-	if (k1 == Kx) {
+	if (k1 == K_) {
 		*pk = k;
 		return 0;
 	}

@@ -372,7 +372,7 @@ tmpref(char *v)
 	}
 	t = curf->ntmp;
 	*h = t;
-	newtmp(0, Kx, curf);
+	newtmp(0, K_, curf);
 	strcpy(curf->tmp[t].name, v);
 	return TMP(t);
 }
@@ -751,11 +751,11 @@ typecheck(Fn *fn)
 						optab[i->op].name);
 				if (rtype(r) == RType)
 					continue;
-				if (rtype(r) != -1 && k == Kx)
+				if (rtype(r) != -1 && k == K_)
 					err("no %s operand expected in %s",
 						n == 1 ? "second" : "first",
 						optab[i->op].name);
-				if (rtype(r) == -1 && k != Kx)
+				if (rtype(r) == -1 && k != K_)
 					err("missing %s operand in %s",
 						n == 1 ? "second" : "first",
 						optab[i->op].name);
@@ -806,7 +806,7 @@ parsefn(int export)
 	curf->con[0].type = CBits;
 	curf->export = export;
 	blink = &curf->start;
-	curf->retty = Kx;
+	curf->retty = K_;
 
 	curf->section = NULL;
 	curf->secflags = NULL;

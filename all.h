@@ -180,7 +180,7 @@ enum {
 #define isret(j) INRANGE(j, Jret0, Jretc)
 
 enum Class {
-	Kx = -1, /* "top" class (see usecheck() and clsmerge()) */
+	K_ = -1, /* "top" class (see usecheck() and clsmerge()) */
 	Kw,
 	Kl,
 	Ks,
