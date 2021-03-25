@@ -43,6 +43,7 @@ enum {
 	Ttype,
 	Tdata,
 	Talign,
+	Tx,
 	Tl,
 	Tw,
 	Th,
@@ -93,6 +94,7 @@ static char *kwmap[Ntok] = {
 	[Ttype] = "type",
 	[Tdata] = "data",
 	[Talign] = "align",
+	[Tx] = "x",
 	[Tl] = "l",
 	[Tw] = "w",
 	[Th] = "h",
@@ -440,6 +442,8 @@ parsecls(int *tyn)
 		return Kw;
 	case Tl:
 		return Kl;
+	case Tx:
+		return Kx;
 	case Ts:
 		return Ks;
 	case Td:
@@ -637,7 +641,7 @@ DoOp:
 		op = Oload;
 	if (op == Talloc1 || op == Talloc2)
 		op = Oalloc;
-	if (k == 4)
+	if (k == NClass)
 		err("size class must be w, l, s, or d");
 	if (op >= NPubOp)
 		err("invalid instruction");
@@ -692,7 +696,9 @@ static int
 usecheck(Ref r, int k, Fn *fn)
 {
 	return rtype(r) != RTmp || fn->tmp[r.val].cls == k
-		|| (fn->tmp[r.val].cls == Kl && k == Kw);
+		|| (fn->tmp[r.val].cls == Kl && k == Kw)
+		|| (fn->tmp[r.val].cls == Kx && k == Kw)
+		|| (fn->tmp[r.val].cls == Kx && k == Kl);
 }
 
 static void

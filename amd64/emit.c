@@ -353,7 +353,7 @@ Next:
 	goto Next;
 }
 
-static void *negmask[4] = {
+static void *negmask[NClass] = {
 	[Ks] = (uint32_t[4]){ 0x80000000 },
 	[Kd] = (uint64_t[2]){ 0x8000000000000000 },
 };

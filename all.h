@@ -184,7 +184,9 @@ enum Class {
 	Kw,
 	Kl,
 	Ks,
-	Kd
+	Kd,
+	Kx,
+	NClass,
 };
 
 #define KWIDE(k) ((k)&1)
@@ -192,7 +194,7 @@ enum Class {
 
 struct Op {
 	char *name;
-	short argcls[2][4];
+	short argcls[2][NClass];
 	int canfold;
 };
 
