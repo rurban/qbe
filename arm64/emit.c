@@ -153,6 +153,27 @@ emitf(char *s, Ins *i, E *e)
 	int k, c;
 	Con *pc;
 	unsigned n, sp;
+	uint64_t sl = (uint64_t)-1;
+
+	for (char *ss = s; *ss; ++ss) {
+		if (ss[0] != '%')
+			continue;
+		switch (ss[1]) {
+		case 'M':
+			c = ss[2];
+			r = c == '=' ? i->to : i->arg[c - '0'];
+			if (rtype(r) == RSlot) {
+				// Does not support multiple %M arguments
+				assert(sl == (uint64_t)-1);
+				sl = slot(r.val, e);
+			}
+			break;
+		}
+	}
+	/* If %M is used later in the instruction, and the slot is >32760, we
+	 * need to prep a scratch register to store it in. */
+	if (sl != (uint64_t)-1 && sl > 32760)
+		fprintf(e->f, "\tmov\tx16, #%"PRIu64"\n", sl);
 
 	fputc('\t', e->f);
 
@@ -228,7 +249,11 @@ emitf(char *s, Ins *i, E *e)
 				fprintf(e->f, "[%s]", rname(r.val, Kl));
 				break;
 			case RSlot:
-				fprintf(e->f, "[x29, %"PRIu64"]", slot(r.val, e));
+				sl = slot(r.val, e);
+				if (sl <= 32760)
+					fprintf(e->f, "[x29, %"PRIu64"]", sl);
+				else
+					fprintf(e->f, "[x29, x16]");
 				break;
 			}
 			break;
@@ -310,7 +335,8 @@ emitins(Ins *i, E *e)
 		if (rtype(i->to) == RSlot) {
 			switch (rtype(i->arg[0])) {
 			case RSlot:
-				emitf("ldr %?, %M0\n\tstr %?, %M=", i, e);
+				emitf("ldr %?, %M0", i, e);
+				emitf("str %?, %M=", i, e);
 				break;
 			case RCon:
 				loadcon(&e->fn->con[i->arg[0].val], R18, i->cls, e->f);
