@@ -349,6 +349,19 @@ chuse(Ref r, int du, Fn *fn)
 		fn->tmp[r.val].nuse += du;
 }
 
+void
+chpred(Blk *b, Blk *bp, Blk *bp1)
+{
+	Phi *p;
+	uint a;
+
+	for (p=b->phi; p; p=p->link) {
+		for (a=0; p->blk[a]!=bp; a++)
+			assert(a+1<p->narg);
+		p->blk[a] = bp1;
+	}
+}
+
 Ref
 getcon(int64_t val, Fn *fn)
 {

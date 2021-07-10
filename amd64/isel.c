@@ -378,10 +378,12 @@ seljmp(Blk *b, Fn *fn)
 	int c, k;
 	Ins *fi;
 	Tmp *t;
+	Blk *bn, *s;
+	Phi *p;
+	size_t i, j;
 
-	if (b->jmp.type == Jret0 || b->jmp.type == Jjmp)
+	if (b->jmp.type != Jjnz)
 		return;
-	assert(b->jmp.type == Jjnz);
 	r = b->jmp.arg;
 	t = &fn->tmp[r.val];
 	b->jmp.arg = R;
@@ -403,6 +405,43 @@ seljmp(Blk *b, Fn *fn)
 		if (t->nuse == 1) {
 			selcmp(fi->arg, k, fn);
 			*fi = (Ins){.op = Onop};
+		}
+		switch (c) {
+		case NCmpI+Cfeq:
+		case NCmpI+Cfne:
+			/* ZF is set when operands are unordered, so we
+			 * may have to check PF as well.
+			 */
+			++fn->nblk;
+			bn = blknew();
+			bn->visit = ++b->visit;
+			(void)!snprintf(bn->name, NString, "%s.%d", b->name, b->visit);
+			bn->loop = b->loop;
+			bn->link = b->link;
+			bn->s1 = b->s1;
+			bn->s2 = b->s2;
+			if (c == NCmpI+Cfeq) {
+				bn->jmp.type = Jjf + NCmpI+Cfo;
+				b->s1 = bn;
+				s = bn->s2;
+				chpred(bn->s1, b, bn);
+			} else {
+				bn->jmp.type = Jjf + NCmpI+Cfuo;
+				b->s2 = bn;
+				s = bn->s1;
+				chpred(bn->s2, b, bn);
+			}
+			for (p=s->phi; p; p=p->link) {
+				for (j=0; p->blk[j]!=b; j++)
+					assert(j+1<p->narg);
+				i = ++p->narg;
+				vgrow(&p->arg, i);
+				vgrow(&p->blk, i);
+				p->arg[i] = p->arg[j];
+				p->blk[i] = bn;
+			}
+			b->link = bn;
+			break;
 		}
 		b->jmp.type = Jjf + c;
 	}
