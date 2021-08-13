@@ -1,0 +1,11 @@
+export function l $test(l %x) {
+@start
+	%y =l loadl %x
+	%y =l sub %y, %y
+	ret %y
+}
+
+# >>> driver
+# extern long test(long *x);
+# int main() { long x = 1; return test(&x); }
+# <<<
