@@ -339,6 +339,25 @@ Emit:
 		if (isload(i.op))
 			goto case_Oload;
 		if (iscmp(i.op, &kc, &x)) {
+			/* ZF is set when operands are unordered, so we
+			 * may have to check PF as well.
+			 */
+			switch (x) {
+			case NCmpI+Cfeq:
+				r0 = newtmp("isel", Kw, fn);
+				r1 = newtmp("isel", Kw, fn);
+				emit(Oand, Kw, i.to, r0, r1);
+				emit(Oflagfo, k, r1, R, R);
+				i.to = r0;
+				break;
+			case NCmpI+Cfne:
+				r0 = newtmp("isel", Kw, fn);
+				r1 = newtmp("isel", Kw, fn);
+				emit(Oor, Kw, i.to, r0, r1);
+				emit(Oflagfuo, k, r1, R, R);
+				i.to = r0;
+				break;
+			}
 			swap = cmpswap(i.arg, x);
 			if (swap)
 				x = cmpop(x);
@@ -396,12 +415,22 @@ seljmp(Blk *b, Fn *fn)
 		b->jmp.type = Jjf + Cine;
 	}
 	else if (iscmp(fi->op, &k, &c)) {
-		swap = cmpswap(fi->arg, c);
-		if (swap)
-			c = cmpop(c);
-		if (t->nuse == 1) {
-			selcmp(fi->arg, k, swap, fn);
-			*fi = (Ins){.op = Onop};
+		switch (c) {
+		case NCmpI+Cfeq:
+		case NCmpI+Cfne:
+			c = Cine;
+			/* set jmp.jarg so rega() doesn't eliminate
+			 * the instructions that set r and ZF */
+			b->jmp.arg = r;
+			break;
+		default:
+			swap = cmpswap(fi->arg, c);
+			if (swap)
+				c = cmpop(c);
+			if (t->nuse == 1) {
+				selcmp(fi->arg, k, swap, fn);
+				*fi = (Ins){.op = Onop};
+			}
 		}
 		b->jmp.type = Jjf + c;
 	}
