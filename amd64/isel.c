@@ -147,7 +147,7 @@ seladdr(Ref *r, ANum *an, Fn *fn)
 			 * rewrite it or bail out if
 			 * impossible
 			 */
-			if (!req(a.index, R))
+			if (!req(a.index, R) || rtype(a.base) != RTmp)
 				return;
 			else {
 				a.index = a.base;
@@ -256,13 +256,18 @@ sel(Ins i, ANum *an, Fn *fn)
 	case Osar:
 	case Oshr:
 	case Oshl:
-		if (rtype(i.arg[1]) == RCon)
-			goto Emit;
 		r0 = i.arg[1];
+		if (rtype(r0) == RCon)
+			goto Emit;
+		if (fn->tmp[r0.val].slot != -1)
+			err("unlikely argument %%%s in %s",
+				fn->tmp[r0.val].name, optab[i.op].name);
 		i.arg[1] = TMP(RCX);
 		emit(Ocopy, Kw, R, TMP(RCX), R);
 		emiti(i);
+		i1 = curi;
 		emit(Ocopy, Kw, TMP(RCX), r0, R);
+		fixarg(&i1->arg[0], argcls(&i, 0), i1, fn);
 		break;
 	case Onop:
 		break;
@@ -339,11 +344,12 @@ Emit:
 		if (isload(i.op))
 			goto case_Oload;
 		if (iscmp(i.op, &kc, &x)) {
-			/* ZF is set when operands are unordered, so we
-			 * may have to check PF as well.
-			 */
 			switch (x) {
 			case NCmpI+Cfeq:
+				/* zf is set when operands are
+				 * unordered, so we may have to
+				 * check pf
+				 */
 				r0 = newtmp("isel", Kw, fn);
 				r1 = newtmp("isel", Kw, fn);
 				emit(Oand, Kw, i.to, r0, r1);
@@ -368,7 +374,7 @@ Emit:
 		die("unknown instruction %s", optab[i.op].name);
 	}
 
-	while (i0 > curi && --i0) {
+	while (i0>curi && --i0) {
 		assert(rslot(i0->arg[0], fn) == -1);
 		assert(rslot(i0->arg[1], fn) == -1);
 	}
@@ -402,7 +408,7 @@ seljmp(Blk *b, Fn *fn)
 	r = b->jmp.arg;
 	t = &fn->tmp[r.val];
 	b->jmp.arg = R;
-	assert(!req(r, R) && rtype(r) != RCon);
+	assert(rtype(r) == RTmp);
 	if (b->s1 == b->s2) {
 		chuse(r, -1, fn);
 		b->jmp.type = Jjmp;
@@ -414,23 +420,15 @@ seljmp(Blk *b, Fn *fn)
 		selcmp((Ref[2]){r, CON_Z}, Kw, 0, fn); /* todo, long jnz */
 		b->jmp.type = Jjf + Cine;
 	}
-	else if (iscmp(fi->op, &k, &c)) {
-		switch (c) {
-		case NCmpI+Cfeq:
-		case NCmpI+Cfne:
-			c = Cine;
-			/* set jmp.jarg so rega() doesn't eliminate
-			 * the instructions that set r and ZF */
-			b->jmp.arg = r;
-			break;
-		default:
-			swap = cmpswap(fi->arg, c);
-			if (swap)
-				c = cmpop(c);
-			if (t->nuse == 1) {
-				selcmp(fi->arg, k, swap, fn);
-				*fi = (Ins){.op = Onop};
-			}
+	else if (iscmp(fi->op, &k, &c)
+	     && c != NCmpI+Cfeq /* see sel() */
+	     && c != NCmpI+Cfne) {
+		swap = cmpswap(fi->arg, c);
+		if (swap)
+			c = cmpop(c);
+		if (t->nuse == 1) {
+			selcmp(fi->arg, k, swap, fn);
+			*fi = (Ins){.op = Onop};
 		}
 		b->jmp.type = Jjf + c;
 	}
@@ -550,7 +548,9 @@ amatch(Addr *a, Ref r, int n, ANum *ai, Fn *fn)
 	Ref al, ar;
 
 	if (rtype(r) == RCon) {
-		addcon(&a->offset, &fn->con[r.val]);
+		if (!addcon(&a->offset, &fn->con[r.val]))
+			err("unlikely sum of $%s and $%s",
+				str(a->offset.label), str(fn->con[r.val].label));
 		return 1;
 	}
 	assert(rtype(r) == RTmp);

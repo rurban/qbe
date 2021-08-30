@@ -1,7 +1,5 @@
 # tests that NaN is handled properly by
 # floating point comparisons
-#
-# TODO: fix eq[123](NAN, NAN) on amd64
 
 export function w $lt(d %x, d %y) {
 @start
