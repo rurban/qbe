@@ -9,40 +9,17 @@ export function w $eq(s %x, s %y) {
 	ret %r
 }
 
-export function w $eq2(s %x, s %y) {
-@start
-	%r =w ceqs %x, %y
-	jnz %r, @equal, @unequal
-@equal
-	ret 1
-@unequal
-	ret 0
-}
-
 export function w $ne(s %x, s %y) {
 @start
 	%r =w cnes %x, %y
 	ret %r
 }
 
-export function w $ne2(s %x, s %y) {
-@start
-	%r =w cnes %x, %y
-	jnz %r, @unequal, @equal
-@equal
-	ret 0
-@unequal
-	ret 1
-}
-
 # >>> driver
 # #include <math.h>
 # extern int eq(float, float);
-# extern int eq2(float, float);
 # extern int ne(float, float);
-# extern int ne2(float, float);
 # int main() {
-# 	return !(eq(NAN, NAN) == 0 && eq2(NAN, NAN) == 0 &&
-# 	         ne(NAN, NAN) == 1 && ne2(NAN, NAN) == 1);
+# 	return !(eq(NAN, NAN) == 0 && ne(NAN, NAN) == 1);
 # }
 # <<<

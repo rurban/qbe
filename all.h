@@ -438,7 +438,6 @@ int clsmerge(short *, short);
 int phicls(int, Tmp *);
 Ref newtmp(char *, int, Fn *);
 void chuse(Ref, int, Fn *);
-void chpred(Blk *, Blk *, Blk *);
 Ref getcon(int64_t, Fn *);
 void addcon(Con *, Con *);
 void blit(Ref, uint, Ref, uint, Fn *);

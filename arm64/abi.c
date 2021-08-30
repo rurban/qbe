@@ -500,6 +500,19 @@ split(Fn *fn, Blk *b)
 }
 
 static void
+chpred(Blk *b, Blk *bp, Blk *bp1)
+{
+	Phi *p;
+	uint a;
+
+	for (p=b->phi; p; p=p->link) {
+		for (a=0; p->blk[a]!=bp; a++)
+			assert(a+1<p->narg);
+		p->blk[a] = bp1;
+	}
+}
+
+static void
 selvaarg(Fn *fn, Blk *b, Ins *i)
 {
 	Ref loc, lreg, lstk, nr, r0, r1, c8, c16, c24, c28, ap;
