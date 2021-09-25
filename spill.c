@@ -155,6 +155,11 @@ slot(int t)
 	return SLOT(s);
 }
 
+/* restrict b to at most k registers,
+ * preferring those present in f (if
+ * given), or those with the largest
+ * spill cost, spilling the rest
+ */
 static void
 limit(BSet *b, int k, BSet *f)
 {
@@ -187,6 +192,12 @@ limit(BSet *b, int k, BSet *f)
 		slot(tarr[i]);
 }
 
+/* restrict b1 to available registers,
+ * assuming k1 used gprs and k2 used
+ * fprs, preferring those present in fst
+ * (if given), or those with the largest
+ * spill cost, spilling the rest
+ */
 static void
 limit2(BSet *b1, int k1, int k2, BSet *fst)
 {
@@ -210,6 +221,9 @@ sethint(BSet *u, bits r)
 		tmp[phicls(t, tmp)].hint.m |= r;
 }
 
+/* reload temporaries in u that are not
+ * in v from slots
+ */
 static void
 reloads(BSet *u, BSet *v)
 {
