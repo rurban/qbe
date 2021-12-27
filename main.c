@@ -7,6 +7,7 @@ Target T;
 
 extern Target T_amd64_sysv;
 extern Target T_arm64;
+extern Target T_rv64;
 
 static struct TMap {
 	char *name;
@@ -14,6 +15,7 @@ static struct TMap {
 } tmap[] = {
 	{ "amd64_sysv", &T_amd64_sysv },
 	{ "arm64", &T_arm64 },
+	{ "rv64", &T_rv64 },
 	{ 0, 0 }
 };
 
@@ -193,8 +195,11 @@ main(int ac, char *av[])
 		parse(inf, f, data, func);
 	} while (++optind < ac);
 
-	if (!dbg)
+	if (!dbg) {
 		gasemitfin(outf);
+		if (asm == Gaself)
+			fprintf(outf, ".section .note.GNU-stack,\"\",@progbits\n");
+	}
 
 	exit(0);
 }

@@ -768,7 +768,7 @@ single-precision floating point number `%f` into `%rs`.
     ARG :=
         ABITY VAL  # Regular argument
       | 'env' VAL  # Environment argument (first)
-      | '...'      # Variadic marker (last)
+      | '...'      # Variadic marker
 
     ABITY := BASETY | :IDENT
 
@@ -795,8 +795,8 @@ integer.  If the called function does not expect an environment
 parameter, it will be safely discarded.  See the <@ Functions >
 section for more information about environment parameters.
 
-When the called function is variadic, the last argument
-must be `...`.
+When the called function is variadic, there must be a `...`
+marker separating the named and variadic arguments.
 
 ~ Variadic
 ~~~~~~~~~~
@@ -825,6 +825,7 @@ alignment required by all the targets.
 
     type :valist = align 8 { 24 }  # For amd64_sysv
     type :valist = align 8 { 32 }  # For arm64
+    type :valist = align 8 { 8 }   # For rv64
 
 The following example defines a variadic function adding
 its first three arguments.

@@ -243,7 +243,7 @@ emitf(char *s, Ins *i, E *e)
 			r = c == '=' ? i->to : i->arg[c - '0'];
 			switch (rtype(r)) {
 			default:
-				die("TODO emit non reg addresses");
+				die("todo (arm emit): unhandled ref");
 			case RTmp:
 				assert(isreg(r));
 				fprintf(e->f, "[%s]", rname(r.val, Kl));

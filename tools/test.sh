@@ -22,7 +22,7 @@ init() {
 	arm64)
 		for p in aarch64-linux-musl aarch64-linux-gnu
 		do
-			cc="$p-gcc -no-pie"
+			cc="$p-gcc -no-pie -static"
 			qemu="qemu-aarch64"
 			if
 				$cc -v >/dev/null 2>&1 &&
@@ -42,6 +42,30 @@ init() {
 			exit 1
 		fi
 		bin="$bin -t arm64"
+		;;
+	rv64)
+		for p in riscv64-linux-musl riscv64-linux-gnu
+		do
+			cc="$p-gcc -no-pie"
+			qemu="qemu-riscv64"
+			if
+				$cc -v >/dev/null 2>&1 &&
+				$qemu -version >/dev/null 2>&1
+			then
+				if sysroot=$($cc -print-sysroot) && test -n "$sysroot"
+				then
+					qemu="$qemu -L $sysroot"
+				fi
+				break
+			fi
+			cc=
+		done
+		if test -z "$cc"
+		then
+			echo "Cannot find riscv64 compiler or qemu."
+			exit 1
+		fi
+		bin="$bin -t rv64"
 		;;
 	"")
 		case `uname` in
@@ -137,7 +161,7 @@ once() {
 
 	if test -s $out
 	then
-		$qemu $exe a b c | diff - $out
+		$qemu $exe a b c | diff -u - $out
 		ret=$?
 		reason="output"
 	else

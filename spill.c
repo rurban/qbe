@@ -155,10 +155,11 @@ slot(int t)
 	return SLOT(s);
 }
 
-/* restrict b to at most k registers,
- * preferring those present in f (if
- * given), or those with the largest
- * spill cost, spilling the rest
+/* restricts b to hold at most k
+ * temporaries, preferring those
+ * present in f (if given), then
+ * those with the largest spill
+ * cost
  */
 static void
 limit(BSet *b, int k, BSet *f)
@@ -192,14 +193,14 @@ limit(BSet *b, int k, BSet *f)
 		slot(tarr[i]);
 }
 
-/* restrict b1 to available registers,
- * assuming k1 used gprs and k2 used
- * fprs, preferring those present in fst
- * (if given), or those with the largest
- * spill cost, spilling the rest
+/* spills temporaries to fit the
+ * target limits using the same
+ * preferences as limit(); assumes
+ * that k1 gprs and k2 fprs are
+ * currently in use
  */
 static void
-limit2(BSet *b1, int k1, int k2, BSet *fst)
+limit2(BSet *b1, int k1, int k2, BSet *f)
 {
 	BSet b2[1];
 
@@ -207,8 +208,8 @@ limit2(BSet *b1, int k1, int k2, BSet *fst)
 	bscopy(b2, b1);
 	bsinter(b1, mask[0]);
 	bsinter(b2, mask[1]);
-	limit(b1, T.ngpr - k1, fst);
-	limit(b2, T.nfpr - k2, fst);
+	limit(b1, T.ngpr - k1, f);
+	limit(b2, T.nfpr - k2, f);
 	bsunion(b1, b2);
 }
 
@@ -221,8 +222,8 @@ sethint(BSet *u, bits r)
 		tmp[phicls(t, tmp)].hint.m |= r;
 }
 
-/* reload temporaries in u that are not
- * in v from slots
+/* reloads temporaries in u that are
+ * not in v from their slots
  */
 static void
 reloads(BSet *u, BSet *v)
@@ -411,6 +412,20 @@ spill(Fn *fn)
 		bscopy(b->out, v);
 
 		/* 2. process the block instructions */
+		if (rtype(b->jmp.arg) == RTmp) {
+			t = b->jmp.arg.val;
+			assert(KBASE(tmp[t].cls) == 0);
+			lvarg[0] = bshas(v, t);
+			bsset(v, t);
+			bscopy(u, v);
+			limit2(v, 0, 0, NULL);
+			if (!bshas(v, t)) {
+				if (!lvarg[0])
+					bsclr(u, t);
+				b->jmp.arg = slot(t);
+			}
+			reloads(u, v);
+		}
 		curi = &insb[NIns];
 		for (i=&b->ins[b->nins]; i!=b->ins;) {
 			i--;
